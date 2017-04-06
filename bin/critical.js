@@ -79,10 +79,21 @@ criticalcss.getRules( argv.file, { buffer: options.buffer }, function( err, cont
 
   options.rules = JSON.parse( content );
 
-  criticalcss.findCritical( argv.url, options, function(err, content){
+  criticalcss.findCritical( argv.url, options, function(err, content){  
     if( err ){
       throw new Error( err.message );
     }
+	  
+	// START MAGENTO-ADJUSTMENT
+    // If outputfile is phtml it means our local paths won't work when rendered as non-CSS
+    if(options.outputfile.endsWith('phtml')){
+        // Replace relative paths with magento skin URLs
+        var search = "url(../";
+        var replacement = "url(<?php echo $this->getSkinUrl('', array('_secure'=>true)); ?>";
+        content = content.split(search).join(replacement);
+    }
+    // END MAGENTO-ADJUSTMENT
+	  
     fs.writeFileSync( options.outputfile, content );
     // Print a success message.
     INFO("File " + options.outputfile + " created.");
